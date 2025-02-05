@@ -1,17 +1,17 @@
 import streamlit as st
 import firebase_admin
-from firebase_admin import firestore
 from firebase_admin import credentials
-from firebase_admin import auth
 import json
 import requests
 
 
-cred = credentials.Certificate("pondering-5ff7c-c033cfade319.json")
-firebase_admin.initialize_app(cred)
+
+cred = credentials.Certificate('languagebuddy-f531e-c4665f466d27.json')
+# firebase_admin.initialize_app(cred) #UNCOMMENT THIS WHEN STARTING APP
+
 def app():
 # Usernm = []
-    st.title('Welcome to :violet[Pondering] :sunglasses:')
+    st.title('Welcome to :orange[LanguageBuddy] :sunglasses:')
 
     if 'username' not in st.session_state:
         st.session_state.username = ''
@@ -138,8 +138,15 @@ def app():
         choice = st.selectbox('Login/Signup',['Login','Sign up'])
         email = st.text_input('Email Address')
         password = st.text_input('Password',type='password')
+        #adding functionality for other languages (English, Spanish, French, German, Italian. these are the most popular languages supported by youtube transcripts)
+        native_language = st.selectbox("Please select your native language. We currently support: en (English), es (Spanish), fr (French), de (German), and it (Italian).",
+                                       ("en","es","fr","de","it"))
+        target_language = st.selectbox("Please select the target language you would like to learn. ", ("fr","en","es","de","it"))
         st.session_state.email_input = email
         st.session_state.password_input = password
+        #store this in session state
+        st.session_state.native_language = native_language
+        st.session_state.target_language = target_language
 
         
 
@@ -164,8 +171,11 @@ def app():
             
             
     if st.session_state.signout:
+                st.subheader(":green[Click on Learn to get started!]")
                 st.text('Name '+st.session_state.username)
                 st.text('Email id: '+st.session_state.useremail)
+                st.text('Native Language: '+st.session_state.get('native_language'))
+                st.text('Target Language: '+st.session_state.get('target_language'))
                 st.button('Sign out', on_click=t) 
             
                 

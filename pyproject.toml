@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "languagebuddy"
+version = "0.1.0"
+description = "An web app that helps users learn their target-language through youtube videos"
+authors = ["Connorgentle <gentleconnor123@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.14"
+streamlit = "^1.41.1"
+firebase-admin = "^6.6.0"
+streamlit-option-menu = "^0.4.0"
+python-dotenv = "^1.0.1"
+streamlit-player = "^0.1.5"
+youtube-transcript-api = { version = "^0.5.0", python = ">=3.11,<3.14" }
+reverso-context-api = "^0.5"
+wiktionaryparser = "^0.0.97"
+requests = "^2.32.3"
+wiktextract = "^1.99.7"
+streamlit-aggrid = "^1.1.0"
+gtts = "^2.5.4"
+matplotlib = "^3.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

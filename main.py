@@ -5,9 +5,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-import home, trending, account, your, about, buy_me_a_coffee
+import learn, progress, account, study_vocabulary, about, buy_me_a_coffee
 st.set_page_config(
-        page_title="Pondering",
+        page_title="Language Buddy",
 )
 
 
@@ -41,10 +41,10 @@ class MultiApp:
         # app = st.sidebar(
         with st.sidebar:        
             app = option_menu(
-                menu_title='Pondering ',
-                options=['Home','Account','Trending','Your Posts','about','Buy_me_a_coffee'],
-                icons=['house-fill','person-circle','trophy-fill','chat-fill','info-circle-fill'],
-                menu_icon='chat-text-fill',
+                menu_title='LanguageBuddy ',
+                options=['Account','Learn','Study Vocabulary','Your Progress','about'],
+                icons=['person-circle','caret-right-square-fill','book','graph-up','info-circle-fill'], #'trophy-fill'
+                menu_icon='people-fill', 
                 default_index=1,
                 styles={
                     "container": {"padding": "5!important","background-color":'black'},
@@ -55,18 +55,16 @@ class MultiApp:
                 )
 
         
-        if app == "Home":
-            home.app()
+        if app == "Learn":
+            learn.app()
         if app == "Account":
             account.app()    
-        if app == "Trending":
-            trending.app()        
-        if app == 'Your Posts':
-            your.app()
+        if app == "Your Progress":
+            progress.app()        
+        if app == 'Study Vocabulary':
+            study_vocabulary.app()
         if app == 'about':
-            about.app()    
-        if app=='Buy_me_a_coffee':
-            buy_me_a_coffee.app()    
+            about.app()      
              
           
              
