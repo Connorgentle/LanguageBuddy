@@ -20,6 +20,7 @@ wiktextract = "^1.99.7"
 streamlit-aggrid = "^1.1.0"
 gtts = "^2.5.4"
 matplotlib = "^3.10.0"
+googletrans = "^4.0.2"
 
 [build-system]
 requires = ["poetry-core"]

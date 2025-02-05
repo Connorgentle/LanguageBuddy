@@ -1,8 +1,6 @@
-# Pondering: A streamlit website to share thoughts with others.
+# LanguageBuddy: A streamlit website that helps you learn foreign languages through watching youtube videos.
 
-## Video Tutorial for this project:
-https://www.youtube.com/playlist?list=PLvRfcAN-QbYnxloydunJlfES_m6GblyEt
-
+### Provide a youtube url and get started
 ![image](https://github.com/Ashwani132003/pondering/assets/76273539/e8f2fc9f-6c5d-41c6-9249-429f899e4b16)
 
 

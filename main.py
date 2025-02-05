@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-import learn, progress, account, study_vocabulary, about, buy_me_a_coffee
+import account, learn, progress, study_vocabulary, about
 st.set_page_config(
         page_title="Language Buddy",
 )
@@ -31,42 +31,41 @@ class MultiApp:
         self.apps = []
 
     def add_app(self, title, func):
-
         self.apps.append({
             "title": title,
             "function": func
         })
 
     def run():
-        # app = st.sidebar(
+        # Check if user is logged in before showing the sidebar menu
+        if 'username' not in st.session_state or st.session_state.username == '':
+            account.app()  # Directly go to account page if not logged in
+            return  # This will stop the function here if not logged in
+
         with st.sidebar:        
             app = option_menu(
                 menu_title='LanguageBuddy ',
                 options=['Account','Learn','Study Vocabulary','Your Progress','about'],
-                icons=['person-circle','caret-right-square-fill','book','graph-up','info-circle-fill'], #'trophy-fill'
+                icons=['person-circle','caret-right-square-fill','book','graph-up','info-circle-fill'], 
                 menu_icon='people-fill', 
-                default_index=1,
+                default_index=0,  # Changed to 0 to default to Account when logged in
                 styles={
                     "container": {"padding": "5!important","background-color":'black'},
-        "icon": {"color": "white", "font-size": "23px"}, 
-        "nav-link": {"color":"white","font-size": "20px", "text-align": "left", "margin":"0px", "--hover-color": "blue"},
-        "nav-link-selected": {"background-color": "#02ab21"},}
-                
-                )
+                    "icon": {"color": "white", "font-size": "23px"}, 
+                    "nav-link": {"color":"white","font-size": "20px", "text-align": "left", "margin":"0px", "--hover-color": "blue"},
+                    "nav-link-selected": {"background-color": "#02ab21"},
+                }
+            )
 
-        
+        if app == "Account":
+            account.app()  
         if app == "Learn":
             learn.app()
-        if app == "Account":
-            account.app()    
         if app == "Your Progress":
             progress.app()        
         if app == 'Study Vocabulary':
             study_vocabulary.app()
         if app == 'about':
             about.app()      
-             
-          
-             
-    run()            
-         
+
+    run()

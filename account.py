@@ -7,7 +7,7 @@ import requests
 
 
 cred = credentials.Certificate('languagebuddy-f531e-c4665f466d27.json')
-# firebase_admin.initialize_app(cred) #UNCOMMENT THIS WHEN STARTING APP
+firebase_admin.initialize_app(cred) #UNCOMMENT THIS WHEN STARTING APP
 
 def app():
 # Usernm = []
@@ -139,8 +139,16 @@ def app():
         email = st.text_input('Email Address')
         password = st.text_input('Password',type='password')
         #adding functionality for other languages (English, Spanish, French, German, Italian. these are the most popular languages supported by youtube transcripts)
-        native_language = st.selectbox("Please select your native language. We currently support: en (English), es (Spanish), fr (French), de (German), and it (Italian).",
-                                       ("en","es","fr","de","it"))
+        st.markdown("""
+        Please select your **Native Language** and your **Target Language** for the learning session:
+
+        - **en** (English)
+        - **fr** (French)
+        - **es** (Spanish)
+        - **de** (German)
+        - **it** (Italian)
+        """)
+        native_language = st.selectbox("Please select your native language.", ("en","fr","es","de","it"))
         target_language = st.selectbox("Please select the target language you would like to learn. ", ("fr","en","es","de","it"))
         st.session_state.email_input = email
         st.session_state.password_input = password

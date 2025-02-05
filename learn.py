@@ -330,7 +330,7 @@ def app():
             """, unsafe_allow_html=True)
 
         youtube_url = st.text_area(
-            label=' :orange[Enter the YouTube URL below and click Import Lesson]',
+            label=' :orange[Enter the YouTube URL below and click Import Lesson - (video should be less than 5 minutes)]',
             placeholder='Enter YouTube URL',
             height=None, 
             max_chars=500

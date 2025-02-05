@@ -12,7 +12,7 @@ def app():
 
         Now, let's consider AI and machine learning. Both AI and human babies learn by observing and interacting with vast amounts of data or experiences. An AI doesn't fear mistakes; it learns from them, refining its understanding, much like a child babbling 'goo-goo ga-ga' learns from the feedback it receives. Language isn't just learned; it's acquired through engagement with the world, implying that to master a language, we should immerse ourselves in its use, not merely memorize its rules.
 
-        The best immersion? Living abroad, if you have the means, though it's no guarantee. As adults, fear often inhibits playful learning, and unlike machines, pride can prevent us from learning from our errors. A practical approach is to consume extensive content in the target language. To stay engaged, choose content that interests you in your native language; if you don't enjoy classical literature in your mother tongue, there's no point starting with it in another.
+        The best immersion? Living abroad, if you have the means, though it's no guarantee. As adults, fear often inhibits playful learning, and unlike machines, pride can prevent us from learning from our errors. A practical approach is to consume an extensive amount of content in the target language. To stay engaged, choose content that interests you in your native language; if you don't enjoy classical literature in your mother tongue, there's no point starting with it in another.
 
         By engaging with foreign language content through text, audio, and video, you start to recognize more words, and the language begins to sound like, say, French, not just gibberish. Video adds context, linking sounds to visuals. Remember your frustration with that German movie? As language learners, we're more like toddlers learning their first language. You wouldn't show a two-year-old 'The Godfather' (nearly 3 hours long), but they could handle an episode of 'Sesame Street', with some zoning out. Aim for content that's meaningful to you, at a level that feels like play, just challenging enough to keep you coming back.
 
@@ -39,7 +39,7 @@ def app():
 
         - **Curate Your Content:** Create a YouTube playlist to store interesting videos you want to review in LanguageBuddy. This saves time searching for new content each session, allowing you to focus on learning.
 
-        - **Leverage All Features:** By choosing videos between 2 and 5 minutes, you'll access a transcript with translation tooltips, and your new vocabulary will be saved to the cloud. Review these words on the "Study Vocabulary" page. Also, track your learning journey by checking how many new words you've encountered and how your fluency has improved on the "Your Progress" page.
+        - **Leverage All Features:** By choosing videos between 2 and 5 minutes, you'll access a transcript with translation tooltips, and your new vocabulary will be saved to the cloud. Review these words on the "Study Vocabulary" page, or download your vocabulary to an excel spreadsheet. Finally, don't forget track your learning journey by checking how many new words you've encountered and how your fluency has improved on the "Your Progress" page.
 
         - **Set Goals:** Define clear language learning goals. Think about how you want to use the language - whether for travel, work, or personal interest. Decide on the subjects you want to be able to talk about or understand, like discussing travel experiences, ordering food, or following the news, to guide your learning path and keep you motivated.
 
@@ -63,7 +63,7 @@ def app():
 
     with col2:
         st.markdown("""
-        I created LanguageBuddy with a mission to share accessible language learning tools and methods with my friends, family, and the broader community of language learners. This project has been an exciting journey where I've channeled my love for learning French into something tangible, integrating it with the technical skills I'm gaining in my Master's of Computer Information Technology program at the University of Pennsylvania.
+        I created LanguageBuddy with a mission to share accessible language learning tools and methods with my friends, family, and the broader community of language learners. This project has been an exciting journey where I've channeled my love for learning French into something tangible, integrating it with the technical skills I'm gaining in my Master's of Computer Information Technology at the University of Pennsylvania.
         """)
         st.markdown("""
         <a href="mailto:gentleconnor123@gmail.com"><i class="bi bi-envelope-fill" style="margin-right:5px;"></i>Contact Me</a>
