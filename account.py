@@ -172,7 +172,8 @@ def app():
                     # Clear session state to ensure login page reloads correctly
                     st.session_state['signedout'] = False  
                     st.session_state['signout'] = False  
-                    st.experimental_rerun()  
+                    # Use st.rerun() instead of st.experimental_rerun()
+                    st.rerun()  
                 else:
                     st.error(f'Account creation failed: {message}')
         
