@@ -5,13 +5,20 @@ import json
 import requests
 import os
 
-firebase_credentials_path = st.secrets['FIREBASE_CREDENTIALS_PATH']
-if firebase_credentials_path:
-    cred = credentials.Certificate(firebase_credentials_path)
-else:
-    raise EnvironmentError("Firebase credentials not set in Streamlit secrets.")
+firebase_credentials_json = st.secrets['FIREBASE_CREDENTIALS_PATH']
 
-firebase_admin.initialize_app(cred)
+try:
+    # Parse the JSON string into a dictionary
+    firebase_credentials_dict = json.loads(firebase_credentials_json)
+    # Pass the dictionary directly to Certificate
+    cred = credentials.Certificate(firebase_credentials_dict)
+    firebase_admin.initialize_app(cred)
+except json.JSONDecodeError:
+    raise EnvironmentError("Invalid JSON format for Firebase credentials.")
+except KeyError:
+    raise EnvironmentError("Firebase credentials not set in Streamlit secrets.")
+except Exception as e:
+    raise EnvironmentError(f"Error initializing Firebase: {str(e)}")
 
 def app():
 # Usernm = []
