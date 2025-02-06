@@ -14,7 +14,8 @@ def fetch_vocabulary_stats(user_id, lang_pair, db):
     stats.columns = ['Fluency', 'Count']
     return stats
 
-def plot_fluency_stats(stats):
+# Update plot_fluency_stats to accept title
+def plot_fluency_stats(stats, title='Vocabulary by Fluency Level'):
     fig, ax = plt.subplots(figsize=(10, 6))
     
     colors = ['#FF6347', '#4682B4', '#9ACD32', '#FFD700', '#8B4513']
@@ -33,7 +34,7 @@ def plot_fluency_stats(stats):
     
     ax.set_xlabel('Fluency Level', color='black')
     ax.set_ylabel('')
-    ax.set_title('Vocabulary by Fluency Level', color='black')
+    ax.set_title(title, color='black')  # Use the title passed to the function
     
     fig.patch.set_facecolor('#D3D3D3')
     ax.set_facecolor('#D3D3D3')
@@ -60,6 +61,40 @@ def app():
     stats = fetch_vocabulary_stats(st.session_state.username, lang_pair, st.session_state.db)
     
     if not stats.empty:
-        plot_fluency_stats(stats)
+        # Include the target language in the title
+        title = f'Vocabulary by Fluency Level for {target_language.upper()}'
+        plot_fluency_stats(stats, title)
     else:
         st.write("No vocabulary data available for statistics.")
+
+# Update plot_fluency_stats to accept title
+def plot_fluency_stats(stats, title='Vocabulary by Fluency Level'):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    colors = ['#FF6347', '#4682B4', '#9ACD32', '#FFD700', '#8B4513']
+    cmap = ListedColormap(colors)
+    
+    bars = ax.bar(stats['Fluency'], stats['Count'], color=cmap(range(len(stats))))
+    
+    # Add labels on top of each bar, formatted as integers
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+                f'{int(height)}',  # Convert to integer for display
+                ha='center', va='bottom', color='black')
+
+    ax.get_yaxis().set_ticks([])
+    
+    ax.set_xlabel('Fluency Level', color='black')
+    ax.set_ylabel('')
+    ax.set_title(title, color='black')  # Use the title passed to the function
+    
+    fig.patch.set_facecolor('#D3D3D3')
+    ax.set_facecolor('#D3D3D3')
+    
+    for spine in ax.spines.values():
+        spine.set_edgecolor('black')
+
+    plt.tight_layout()
+    
+    st.pyplot(fig)
