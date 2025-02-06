@@ -1,9 +1,11 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials
+from firebase_admin import firestore
 import json
 import requests
 import os
+
 
 firebase_credentials_json = st.secrets['FIREBASE_CREDENTIALS_PATH']
 
@@ -20,8 +22,10 @@ except KeyError:
 except Exception as e:
     raise EnvironmentError(f"Error initializing Firebase: {str(e)}")
 
+# Initialize Firestore client
+db = firestore.client()
+
 def app():
-# Usernm = []
     st.title('Welcome to :orange[LanguageBuddy] :sunglasses:')
 
     if 'username' not in st.session_state:
@@ -29,8 +33,23 @@ def app():
     if 'useremail' not in st.session_state:
         st.session_state.useremail = ''
 
+    def check_username_uniqueness(username):
+        """
+        Check if a username is unique in the Firestore 'users' collection.
+        """
+        users_ref = db.collection('users')
+        query = users_ref.where('username', '==', username).limit(1)
+        results = query.get()
+        return len(results) == 0
 
     def sign_up_with_email_and_password(email, password, username=None, return_secure_token=True):
+        if not username:
+            return False, "Username is required."
+
+        # Check username uniqueness first
+        if not check_username_uniqueness(username):
+            return False, "Username already exists."
+
         try:
             rest_api_url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp"
             payload = {
@@ -43,12 +62,18 @@ def app():
             payload = json.dumps(payload)
             r = requests.post(rest_api_url, params={"key": "AIzaSyApr-etDzcGcsVcmaw7R7rPxx3A09as7uw"}, data=payload)
             if r.status_code == 200:
-                return True, r.json()['email']
+                # Store user in Firestore after successful authentication
+                user_data = r.json()
+                db.collection('users').document(user_data['localId']).set({
+                    'username': username,
+                    'email': email,
+                    # Add other user details here
+                })
+                return True, user_data['email']
             else:
                 return False, r.json().get('error', {}).get('message')
         except Exception as e:
             return False, f'Signup failed: {str(e)}'
-
 
     def sign_in_with_email_and_password(email=None, password=None, return_secure_token=True):
         rest_api_url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword"
@@ -94,29 +119,15 @@ def app():
         except Exception as e:
             return False, str(e)
 
-    # Example usage
-    # email = "example@example.com"
-           
-
     def f(): 
         try:
-            # user = auth.get_user_by_email(email)
-            # print(user.uid)
-            # st.session_state.username = user.uid
-            # st.session_state.useremail = user.email
-
             userinfo = sign_in_with_email_and_password(st.session_state.email_input,st.session_state.password_input)
             st.session_state.username = userinfo['username']
             st.session_state.useremail = userinfo['email']
-
-            
             global Usernm
             Usernm=(userinfo['username'])
-            
             st.session_state.signedout = True
             st.session_state.signout = True    
-  
-            
         except: 
             st.warning('Login Failed')
 
@@ -125,28 +136,13 @@ def app():
         st.session_state.signedout = False   
         st.session_state.username = ''
 
-
-    def forget():
-        email = st.text_input('Email')
-        if st.button('Send Reset Link'):
-            print(email)
-            success, message = reset_password(email)
-            if success:
-                st.success("Password reset email sent successfully.")
-            else:
-                st.warning(f"Password reset failed: {message}") 
-        
     
-        
-    if "signedout"  not in st.session_state:
+    if "signedout" not in st.session_state:
         st.session_state["signedout"] = False
     if 'signout' not in st.session_state:
         st.session_state['signout'] = False    
-        
 
-        
-    
-    if  not st.session_state["signedout"]: # only show if the state is False, hence the button has never been clicked
+    if not st.session_state["signedout"]: # only show if the state is False, hence the button has never been clicked
         choice = st.selectbox('Login/Signup',['Login','Sign up'])
         email = st.text_input('Email Address')
         password = st.text_input('Password',type='password')
@@ -168,9 +164,6 @@ def app():
         st.session_state.native_language = native_language
         st.session_state.target_language = target_language
 
-        
-
-        
         if choice == 'Sign up':
             username = st.text_input("Enter your unique username")
             if st.button('Create my account'):
@@ -182,19 +175,12 @@ def app():
                 else:
                     st.error(f'Account creation failed: {message}')
 
-            
-            
     if st.session_state.signout:
-                st.subheader(":green[Click on Learn to get started!]")
-                st.text('Name '+st.session_state.username)
-                st.text('Email id: '+st.session_state.useremail)
-                st.text('Native Language: '+st.session_state.get('native_language'))
-                st.text('Target Language: '+st.session_state.get('target_language'))
-                st.button('Sign out', on_click=t) 
-            
+        st.subheader(":green[Click on Learn to get started!]")
+        st.text('Name '+st.session_state.username)
+        st.text('Email id: '+st.session_state.useremail)
+        st.text('Native Language: '+st.session_state.get('native_language'))
+        st.text('Target Language: '+st.session_state.get('target_language'))
+        st.button('Sign out', on_click=t) 
                 
-    
 
-                            
-    def ap():
-        st.write('Posts')
