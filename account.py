@@ -3,18 +3,15 @@ import firebase_admin
 from firebase_admin import credentials
 import json
 import requests
-from dotenv import load_dotenv
 import os
 
-load_dotenv() 
-
-firebase_credentials_path = os.getenv('FIREBASE_CREDENTIALS_PATH')
+firebase_credentials_path = st.secrets['FIREBASE_CREDENTIALS_PATH']
 if firebase_credentials_path:
     cred = credentials.Certificate(firebase_credentials_path)
 else:
-    raise EnvironmentError("Firebase credentials path not set in environment variables.")
+    raise EnvironmentError("Firebase credentials not set in Streamlit secrets.")
 
-firebase_admin.initialize_app(cred) #UNCOMMENT THIS WHEN STARTING APP 
+firebase_admin.initialize_app(cred)
 
 def app():
 # Usernm = []
