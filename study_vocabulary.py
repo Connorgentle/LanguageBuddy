@@ -30,6 +30,7 @@ def display_vocabulary():
             st.dataframe(st.session_state.vocabulary_df, use_container_width=True)
         with st.expander("Flashcard instructions"):
             st.text("Select the fluency level of words you would like to study. If you are just starting on LanguageBuddy, this will be '1-new'. Click Begin Flashcard Session and 10 flashcards will be generated below from randomly selected words in your vocabulary of that fluency type. You can practice your pronunciation by listening to the audio clip. When you want to see the answer, hit Show translation. To update the fluency level for the word, select one of the radio buttons. After the last flashcard, you will see an Update Fluency button. Press it to update your personal vocabulary list in the cloud. (note this will not update the dataset shown above, only your data in the cloud.)")
+            st.text("A note about missing translations - LanguageBuddy uses the Reverso Context API to get translations. However, these translations are not available for special words like pronouns, prepositions, etc. that need more explanation. We are currently working on a solution to get translations for these words.")
 
 @st.cache_data
 def get_translation(text):
