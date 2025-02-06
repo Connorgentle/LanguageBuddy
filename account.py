@@ -34,9 +34,6 @@ def app():
         st.session_state.useremail = ''
 
     def check_username_uniqueness(username):
-        """
-        Check if a username is unique in the Firestore 'users' collection.
-        """
         users_ref = db.collection('users')
         query = users_ref.where('username', '==', username).limit(1)
         results = query.get()
@@ -62,12 +59,12 @@ def app():
             payload = json.dumps(payload)
             r = requests.post(rest_api_url, params={"key": "AIzaSyApr-etDzcGcsVcmaw7R7rPxx3A09as7uw"}, data=payload)
             if r.status_code == 200:
-                # Store user in Firestore after successful authentication
+                # Store user in Firestore only if the username is unique
                 user_data = r.json()
                 db.collection('users').document(user_data['localId']).set({
                     'username': username,
-                    'email': email,
-                    # Add other user details here
+                    'email': email
+                    # Add other user details here if needed
                 })
                 return True, user_data['email']
             else:
@@ -172,8 +169,13 @@ def app():
                     st.success('Account created successfully!')
                     st.markdown('Please Login using your email and password')
                     st.balloons()
+                    # Clear session state to ensure login page reloads correctly
+                    st.session_state['signedout'] = False  # Reset this to show login options
+                    st.session_state['signout'] = False  # Ensure this is also reset
+                    st.experimental_rerun()  # This will refresh the page, ensuring the login screen appears
                 else:
                     st.error(f'Account creation failed: {message}')
+        
 
     if st.session_state.signout:
         st.subheader(":green[Click on Learn to get started!]")
