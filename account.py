@@ -42,12 +42,13 @@ def app():
                 payload["displayName"] = username 
             payload = json.dumps(payload)
             r = requests.post(rest_api_url, params={"key": "AIzaSyApr-etDzcGcsVcmaw7R7rPxx3A09as7uw"}, data=payload)
-            try:
-                return r.json()['email']
-            except:
-                st.warning(r.json())
+            if r.status_code == 200:
+                return True, r.json()['email']
+            else:
+                return False, r.json().get('error', {}).get('message')
         except Exception as e:
-            st.warning(f'Signup failed: {e}')
+            return False, f'Signup failed: {str(e)}'
+
 
     def sign_in_with_email_and_password(email=None, password=None, return_secure_token=True):
         rest_api_url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword"
@@ -171,21 +172,15 @@ def app():
 
         
         if choice == 'Sign up':
-            username = st.text_input("Enter  your unique username")
-            
+            username = st.text_input("Enter your unique username")
             if st.button('Create my account'):
-                # user = auth.create_user(email = email, password = password,uid=username)
-                user = sign_up_with_email_and_password(email=email,password=password,username=username)
-                
-                st.success('Account created successfully!')
-                st.markdown('Please Login using your email and password')
-                st.balloons()
-        else:
-            # st.button('Login', on_click=f)          
-            st.button('Login', on_click=f)
-            # if st.button('Forget'):
-            forget()
-            # st.button('Forget',on_click=forget)
+                success, message = sign_up_with_email_and_password(email=email, password=password, username=username)
+                if success:
+                    st.success('Account created successfully!')
+                    st.markdown('Please Login using your email and password')
+                    st.balloons()
+                else:
+                    st.error(f'Account creation failed: {message}')
 
             
             
