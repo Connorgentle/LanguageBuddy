@@ -6,13 +6,10 @@ import json
 import requests
 import os
 
-
 firebase_credentials_json = st.secrets['FIREBASE_CREDENTIALS_PATH']
 
 try:
-    # Parse the JSON string into a dictionary
     firebase_credentials_dict = json.loads(firebase_credentials_json)
-    # Pass the dictionary directly to Certificate
     cred = credentials.Certificate(firebase_credentials_dict)
     firebase_admin.initialize_app(cred)
 except json.JSONDecodeError:
@@ -34,10 +31,9 @@ def app():
         st.session_state.useremail = ''
 
     def check_username_uniqueness(username):
-        users_ref = db.collection('users')
-        query = users_ref.where('username', '==', username).limit(1)
-        results = query.get()
-        return len(results) == 0
+        # Check if the username already exists as a document ID in the 'users' collection
+        user_doc = db.collection('users').document(username).get()
+        return not user_doc.exists
 
     def sign_up_with_email_and_password(email, password, username=None, return_secure_token=True):
         if not username:
@@ -59,12 +55,11 @@ def app():
             payload = json.dumps(payload)
             r = requests.post(rest_api_url, params={"key": "AIzaSyApr-etDzcGcsVcmaw7R7rPxx3A09as7uw"}, data=payload)
             if r.status_code == 200:
-                # Store user in Firestore only if the username is unique
+                # Store user in Firestore with username as document ID
                 user_data = r.json()
-                db.collection('users').document(user_data['localId']).set({
-                    'username': username,
+                db.collection('users').document(username).set({
                     'email': email
-                    # Add other user details here if needed
+                    # Create 'vocabulary' collection here if needed, but remember it won't actually exist until documents are added
                 })
                 return True, user_data['email']
             else:
