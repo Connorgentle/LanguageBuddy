@@ -53,7 +53,7 @@ def app():
             if username:
                 payload["displayName"] = username 
             payload = json.dumps(payload)
-            r = requests.post(rest_api_url, params={"key": "AIzaSyApr-etDzcGcsVcmaw7R7rPxx3A09as7uw"}, data=payload)
+            r = requests.post(rest_api_url, params={"key": st.secrets['FIREBASE_API_KEY']}, data=payload)
             if r.status_code == 200:
                 # Store user in Firestore with username as document ID
                 user_data = r.json()
@@ -80,7 +80,7 @@ def app():
                 payload["password"] = password
             payload = json.dumps(payload)
             print('payload sigin',payload)
-            r = requests.post(rest_api_url, params={"key": "AIzaSyApr-etDzcGcsVcmaw7R7rPxx3A09as7uw"}, data=payload)
+            r = requests.post(rest_api_url, params={"key": st.secrets['FIREBASE_API_KEY']}, data=payload)
             try:
                 data = r.json()
                 user_info = {
@@ -101,7 +101,7 @@ def app():
                 "requestType": "PASSWORD_RESET"
             }
             payload = json.dumps(payload)
-            r = requests.post(rest_api_url, params={"key": "AIzaSyApr-etDzcGcsVcmaw7R7rPxx3A09as7uw"}, data=payload)
+            r = requests.post(rest_api_url, params={"key": st.secrets['FIREBASE_API_KEY']}, data=payload)
             if r.status_code == 200:
                 return True, "Reset email Sent"
             else:
