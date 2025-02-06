@@ -143,25 +143,30 @@ def app():
         choice = st.selectbox('Login/Signup',['Login','Sign up'])
         email = st.text_input('Email Address')
         password = st.text_input('Password',type='password')
-        #adding functionality for other languages (English, Spanish, French, German, Italian. these are the most popular languages supported by youtube transcripts)
-        st.markdown("""
-        Please select your **Native Language** and your **Target Language** for the learning session:
-
-        - **en** (English)
-        - **fr** (French)
-        - **es** (Spanish)
-        - **de** (German)
-        - **it** (Italian)
-        """)
-        native_language = st.selectbox("Please select your native language.", ("en","fr","es","de","it"))
-        target_language = st.selectbox("Please select the target language you would like to learn. ", ("fr","en","es","de","it"))
         st.session_state.email_input = email
         st.session_state.password_input = password
-        #store this in session state
-        st.session_state.native_language = native_language
-        st.session_state.target_language = target_language
 
-        if choice == 'Sign up':
+        if choice == 'Login':
+            # Show language selection for login only
+            st.markdown("""
+            Please select your **Native Language** and your **Target Language** for the learning session:
+
+            - **en** (English)
+            - **fr** (French)
+            - **es** (Spanish)
+            - **de** (German)
+            - **it** (Italian)
+            """)
+            native_language = st.selectbox("Please select your native language.", ("en","fr","es","de","it"))
+            target_language = st.selectbox("Please select the target language you would like to learn. ", ("fr","en","es","de","it"))
+            st.session_state.native_language = native_language
+            st.session_state.target_language = target_language
+
+            # Login button
+            if st.button('Login', on_click=f):
+                pass  # The actual login happens in the f() function
+
+        elif choice == 'Sign up':
             username = st.text_input("Enter your unique username")
             if st.button('Create my account'):
                 success, message = sign_up_with_email_and_password(email=email, password=password, username=username)
@@ -170,13 +175,12 @@ def app():
                     st.markdown('Please Login using your email and password')
                     st.balloons()
                     # Clear session state to ensure login page reloads correctly
-                    st.session_state['signedout'] = False  # Reset this to show login options
-                    st.session_state['signout'] = False  # Ensure this is also reset
-                    st.experimental_rerun()  # This will refresh the page, ensuring the login screen appears
+                    st.session_state['signedout'] = False  
+                    st.session_state['signout'] = False  
+                    st.experimental_rerun()  
                 else:
                     st.error(f'Account creation failed: {message}')
         
-
     if st.session_state.signout:
         st.subheader(":green[Click on Learn to get started!]")
         st.text('Name '+st.session_state.username)
