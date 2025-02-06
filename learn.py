@@ -169,47 +169,30 @@ def batch_get_translations(words, native_language=st.session_state.get("native_l
 
 def remove_punctuation(input_string):
     """
-    Remove all non-word characters from the input string and convert it to lowercase.
+    Remove punctuation from the input string except for apostrophes, converting it to lowercase.
 
-    This function uses a regular expression to strip out any character that 
-    isn't alphanumeric or underscore, effectively removing punctuation.
-
-    :param input_string: The string to process.
-    :return: A new string with all non-word characters removed and converted to lowercase.
+    :param input_string: A string from which to remove punctuation.
+    :return: A string with most punctuation removed but apostrophes kept, converted to lowercase.
     """
-    return re.sub(r'\W+', '', input_string).lower()
-
+    return re.sub(r'[^\w\s\']+', '', input_string).lower()
 
 def process_transcript(transcript, db):
-    """
-    Process a video transcript to handle unique words, update Firestore with language context, 
-    and format text with translation tooltips.
-
-    This function collects unique words from the transcript, sends new words to Firestore 
-    based on the language pair, translates these words, and formats the transcript with tooltips.
-
-    :param transcript: A list of dictionaries where each dictionary contains 'text' from the video transcript.
-    :param db: A Firestore client instance for database operations.
-    :return: A string of HTML formatted text where each word might have a tooltip with translations, or None if an error occurs.
-    """
     try:
         unique_words = set()
         for line in transcript:
             if line["text"] != '[Music]':
+                # Keep words with apostrophes intact
                 cleaned_words = [remove_punctuation(word).lower() for word in line["text"].split() 
                                  if isinstance(word, str) and word.strip() != '']
                 unique_words.update(cleaned_words)
         
-        # Use session state for language selection
         native_language = st.session_state.get("native_language")
         target_language = st.session_state.get("target_language")
         
-        # Send unique words to Firestore, specifying the language pair
         if st.session_state.get('username'):
             lang_pair = f"{native_language}-{target_language}"
             send_unique_words_to_firestore(unique_words, st.session_state.username, db, lang_pair)
         
-        # Translate words based on the language pair
         translations = batch_get_translations([word for word in unique_words if isinstance(word, str) and word], 
                                               native_language, target_language)
         
@@ -218,8 +201,10 @@ def process_transcript(transcript, db):
             if line["text"] != '[Music]':
                 words_with_tooltips = []
                 for word in line["text"].split():
+                    # Clean the word for translation but keep the original for display
                     cleaned_word = remove_punctuation(word)
                     if cleaned_word and isinstance(cleaned_word, str):
+                        # Use the cleaned word for translation lookup but display the original word
                         translation = translations.get(cleaned_word, [])[:3]
                         words_with_tooltips.append(f'<div class="tooltip">{word}<span class="tooltiptext">{", ".join(translation)}</span></div>')
                 html_output.append(' '.join(words_with_tooltips))
