@@ -8,7 +8,7 @@ from firebase_admin import firestore  # Now needed for updates
 
 def fetch_vocabulary_once(user_id, lang_pair, db):
     words_collection = db.collection('users').document(user_id).collection('vocabulary').document(lang_pair).collection('words')
-    vocab = [{'Word': doc.id, 'Fluency': doc.to_dict().get('fluency', 'new')} for doc in words_collection.stream()]
+    vocab = [{'Word': doc.id, 'Fluency': doc.to_dict().get('fluency', '1-new')} for doc in words_collection.stream()]
     return pd.DataFrame(vocab)
 
 def display_vocabulary():
@@ -26,10 +26,10 @@ def display_vocabulary():
     if st.session_state.vocabulary_df.empty:
         st.write("Your vocabulary list is empty. Start learning new words!")
     else:
-        with st.expander(f"View your {native_language}-{target_language} Vocabulary (you can download this as a csv by hovering over the table then clicking the download icon in the top right)"):
+        with st.expander(f"View your {native_language}-{target_language} Vocabulary (downloadable as .csv by hovering over the table then clicking download icon in top right)"):
             st.dataframe(st.session_state.vocabulary_df, use_container_width=True)
         with st.expander("Flashcard instructions"):
-            st.text("Select the fluency level of words you would like to study. If you are just starting on LanguageBuddy, this will be '1 - new'. Click Begin Flashcard Session and 10 flashcards will be generated below from randomly selected words in your vocabulary of that fluency type. You can practice your pronunciation by listening to the audio clip. When you want to see the answer, hit Show translation. To update the fluency level for the word, select one of the radio buttons. After the last flashcard, you will see an Update Fluency button. Press it to update your personal vocabulary list in the cloud. (note this will not update the dataset shown above, only your data in the cloud.)")
+            st.text("Select the fluency level of words you would like to study. If you are just starting on LanguageBuddy, this will be '1-new'. Click Begin Flashcard Session and 10 flashcards will be generated below from randomly selected words in your vocabulary of that fluency type. You can practice your pronunciation by listening to the audio clip. When you want to see the answer, hit Show translation. To update the fluency level for the word, select one of the radio buttons. After the last flashcard, you will see an Update Fluency button. Press it to update your personal vocabulary list in the cloud. (note this will not update the dataset shown above, only your data in the cloud.)")
 
 @st.cache_data
 def get_translation(text):
@@ -59,7 +59,7 @@ def app():
     
     display_vocabulary()
     
-    fluency_levels = ["new", "unfamiliar", "familiar", "learned", "known"]
+    fluency_levels = ["1-new", "2-recognized", "3-familiar", "4-learned", "5-known"]
 
     # Flashcard Session Start
     st.subheader(":orange[Flashcard Session]")

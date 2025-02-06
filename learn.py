@@ -116,7 +116,7 @@ def send_unique_words_to_firestore(unique_words, user_id, db, lang_pair):
         for word in unique_words:
             if isinstance(word, str) and word.strip():
                 doc_ref = words_collection.document(word)
-                batch.set(doc_ref, {"fluency": "new"}, merge=True)
+                batch.set(doc_ref, {"fluency": "1-new"}, merge=True)
         
         batch.commit()
     except Exception as e:
@@ -138,8 +138,8 @@ def update_word_fluency(user_id, word, new_fluency, db):
     :raises ValueError: If `new_fluency` is not one of the allowed values.
     :return: None. This function updates Firestore in-place.
     """
-    if new_fluency not in ["new", "familiar", "known"]:
-        raise ValueError("Fluency must be 'new', 'familiar', or 'known'")
+    if new_fluency not in ["1-new", "2-recognized", "3-familiar", "4-learned" "5-known"]:
+        raise ValueError("Fluency must be '1-new', '2-recognized', '3-familiar', '4-learned', or '5-known'")
     
     user_vocabulary_ref = db.collection('users').document(user_id).collection('vocabulary').document('unique_words')
     user_vocabulary_ref.update({
