@@ -3,11 +3,18 @@ import firebase_admin
 from firebase_admin import credentials
 import json
 import requests
+from dotenv import load_dotenv
+import os
 
+load_dotenv() 
 
+firebase_credentials_path = os.getenv('FIREBASE_CREDENTIALS_PATH')
+if firebase_credentials_path:
+    cred = credentials.Certificate(firebase_credentials_path)
+else:
+    raise EnvironmentError("Firebase credentials path not set in environment variables.")
 
-cred = credentials.Certificate('languagebuddy-f531e-c4665f466d27.json')
-firebase_admin.initialize_app(cred) #UNCOMMENT THIS WHEN STARTING APP
+firebase_admin.initialize_app(cred) #UNCOMMENT THIS WHEN STARTING APP 
 
 def app():
 # Usernm = []
