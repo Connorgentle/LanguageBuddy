@@ -299,7 +299,7 @@ def app():
             In a separate tab of your web browser, open [YouTube](https://www.youtube.com) and find a video to watch. 
             You can use [Google Translate](https://translate.google.com/) to get the search terms that interest you 
             in your target language from your native language. The video should be less than 5 minutes long and have 
-            captions in your target language. User Youtube's Filters -> Duration -> Under 4 minutes.
+            captions in your target language. Use Youtube's Filters -> Duration -> Under 4 minutes.
             Copy the URL for the YouTube video and paste it in the box below, then click the **Import Lesson** button. 
             Videos longer than 5 minutes risk not properly loading the transcript and other LanguageBuddy features.
             The shorter a video is, the easier it will be to complete the steps below.
