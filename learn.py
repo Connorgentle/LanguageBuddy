@@ -1,43 +1,58 @@
 import streamlit as st
 from firebase_admin import firestore
+from streamlit_player import st_player
+import requests
+import xml.etree.ElementTree as ET
+import re
+from reverso_context_api import Client
+from collections import namedtuple
 
 ########################################
 #     Importing libraries              #
 ########################################
 
-from streamlit_player import st_player
-from youtube_transcript_api import YouTubeTranscriptApi
-import streamlit as st
-import requests
-from reverso_context_api import Client
-from collections import namedtuple
-import re
-import streamlit as st
-
 ###################################
 # Functions                 #
 ###################################
 
-
-# def get_transcription(youtube_url: str, target_language = st.session_state.get("target_language")):
 def get_transcription(youtube_url: str):
     """
-    Extracts the transcription of a YouTube video in the specified target language.
+    Extracts the transcription of a YouTube video using direct HTTP requests.
 
-    This function retrieves the video ID from the URL, fetches the transcript, 
-    and does not check for existing transcripts in session state as previously 
-    described in comments. 
+    This function retrieves the video ID from the URL, fetches the transcript 
+    directly from YouTube's timedtext endpoint, and converts it to a list of dictionaries.
 
     :param youtube_url: A string representing the URL of the YouTube video.
-    :param target_language: The language code for which to fetch the transcript, defaults to 'fr' for French.
-    :return: A list of dictionaries, each containing 'text', 'start', and 'duration' keys for the video's transcript.
+    :return: A list of dictionaries containing 'text', 'start', and 'duration' keys for the video's transcript.
+    :raises Exception: If the transcript for the specified language is not available.
     """
-    #defining target_language here
-    target_language = target_language = st.session_state.get("target_language")
+    target_language = st.session_state.get("target_language")
+    if not target_language:
+        raise Exception("Target language is not set in session state.")
 
     youtube_id = youtube_url[youtube_url.find("watch?v=")+len("watch?v="):]
-    transcript = YouTubeTranscriptApi.get_transcript(youtube_id,languages=[target_language])
-    return transcript
+    url = f"http://video.google.com/timedtext?lang={target_language}&v={youtube_id}"
+    
+    response = requests.get(url)
+    if response.status_code == 200:
+        root = ET.fromstring(response.text)
+        transcript = []
+        for child in root:
+            if child.tag == 'text':
+                start = float(child.attrib.get('start', '0'))
+                duration = float(child.attrib.get('dur', '0'))
+                text = child.text or ""
+                # Clean up the text (remove extra spaces, newlines)
+                text = re.sub(r'\s+', ' ', text).strip()
+                
+                transcript.append({
+                    'text': text,
+                    'start': start,
+                    'duration': duration
+                })
+        return transcript
+    else:
+        raise Exception(f"Could not retrieve a transcript for the video in {target_language}: Status code {response.status_code}")
 
 def remove_punctuation(input_string):
     """
@@ -48,14 +63,10 @@ def remove_punctuation(input_string):
     """
     return re.sub(r'\W+', '', input_string).lower()
 
-#Function to get translations from reverso context (think about replacing/modifying this as it doesnt provide for prronouns and other words)
 @st.cache_data
-def get_translation(text, native_language=st.session_state.get("native_language","en"), target_language=st.session_state.get("target_language")):
+def get_translation(text, native_language=st.session_state.get("native_language","en"), target_language=st.session_state.get("target_language", "fr")):
     """
     Retrieve translations for a given text using the Reverso Context API.
-
-    This function initializes a client for the specified languages and 
-    returns translations for the provided text.
 
     :param text: The word or phrase to translate.
     :param native_language: The source language code (default is 'en' for English).
@@ -65,15 +76,10 @@ def get_translation(text, native_language=st.session_state.get("native_language"
     client = Client(target_language, native_language)
     return list(client.get_translations(text))
 
-
 @st.cache_data 
 def import_lesson(youtube_url: str):
     """
     Extracts the transcription from a YouTube video URL and returns it.
-
-    This function fetches the transcript for educational purposes but does not 
-    update any vocabulary base as previously noted. The caching decorator is used 
-    to potentially improve performance by storing results of expensive operations.
 
     :param youtube_url: A string representing the URL of the YouTube video.
     :return: The transcript of the video as returned by `get_transcription`.
@@ -85,9 +91,6 @@ def try_site(url):
     """
     Check if the provided URL exists by attempting to access it.
 
-    This function sends a GET request to the URL without following redirects 
-    and checks if the response status code is 200, indicating the URL is accessible.
-
     :param url: A string representing the URL to check, typically for a YouTube video.
     :return: Boolean, True if the URL returns a 200 status code, False otherwise.
     """
@@ -98,16 +101,12 @@ def send_unique_words_to_firestore(unique_words, user_id, db, lang_pair):
     """
     Send unique words to Firestore, creating or updating them in a subcollection based on language pair.
 
-    This function ensures each word is stored under a specific language pair document, 
-    allowing for organized storage by language context.
-
     :param unique_words: An iterable of unique words to add or update in Firestore.
     :param user_id: The ID of the user whose vocabulary is being updated.
     :param db: A Firestore client instance.
     :param lang_pair: String representing the language pair, e.g., "en-fr".
     :return: None. Updates Firestore in-place.
     """
-    # We go directly to the 'words' subcollection under 'vocabulary' for the specific language pair
     words_collection = db.collection('users').document(user_id).collection('vocabulary').document(lang_pair).collection('words')
     
     batch = db.batch()
@@ -120,16 +119,11 @@ def send_unique_words_to_firestore(unique_words, user_id, db, lang_pair):
         
         batch.commit()
     except Exception as e:
-        # Log or handle the error appropriately
         st.text(f"An error occurred while updating Firestore: {str(e)}")
-
 
 def update_word_fluency(user_id, word, new_fluency, db):
     """
     Update the fluency level of a specific word in the user's vocabulary stored in Firestore.
-
-    This function checks if the new fluency level is valid before updating 
-    the word's fluency in the user's document in Firestore.
 
     :param user_id: The ID of the user whose vocabulary will be updated.
     :param word: The word whose fluency level needs to be updated.
@@ -138,7 +132,7 @@ def update_word_fluency(user_id, word, new_fluency, db):
     :raises ValueError: If `new_fluency` is not one of the allowed values.
     :return: None. This function updates Firestore in-place.
     """
-    if new_fluency not in ["1-new", "2-recognized", "3-familiar", "4-learned" "5-known"]:
+    if new_fluency not in ["1-new", "2-recognized", "3-familiar", "4-learned", "5-known"]:
         raise ValueError("Fluency must be '1-new', '2-recognized', '3-familiar', '4-learned', or '5-known'")
     
     user_vocabulary_ref = db.collection('users').document(user_id).collection('vocabulary').document('unique_words')
@@ -146,17 +140,10 @@ def update_word_fluency(user_id, word, new_fluency, db):
         f"words.{word}.fluency": new_fluency
     })
 
-
 @st.cache_data
-# def batch_get_translations(words, native_language="en", target_language="fr"):
-#replacing above with new functionality to select languages from drop down
-def batch_get_translations(words, native_language=st.session_state.get("native_language"), target_language=st.session_state.get("target_language")):
+def batch_get_translations(words, native_language=st.session_state.get("native_language", "en"), target_language=st.session_state.get("target_language", "fr")):
     """
     Batch translate a set of words from one language to another using Reverso Context API.
-
-    This function creates translations for each word in the input list, 
-    caching the results to potentially speed up subsequent calls with the 
-    same input.
 
     :param words: An iterable of words to translate.
     :param native_language: The source language code (default is 'en' for English).
@@ -165,7 +152,6 @@ def batch_get_translations(words, native_language=st.session_state.get("native_l
     """
     client = Client(target_language, native_language)
     return {word: list(client.get_translations(word)) for word in words}
-
 
 def remove_punctuation(input_string):
     """
@@ -186,8 +172,8 @@ def process_transcript(transcript, db):
                                  if isinstance(word, str) and word.strip() != '']
                 unique_words.update(cleaned_words)
         
-        native_language = st.session_state.get("native_language")
-        target_language = st.session_state.get("target_language")
+        native_language = st.session_state.get("native_language", "en")
+        target_language = st.session_state.get("target_language", "fr")
         
         if st.session_state.get('username'):
             lang_pair = f"{native_language}-{target_language}"
@@ -215,35 +201,18 @@ def process_transcript(transcript, db):
         st.error(f'Error processing script, in process_transcript(): {str(e)}')
         return None
 
-
 def st_player(youtube_url):
     """
     Display a YouTube video using Streamlit's video component.
-
-    This function simplifies the process of embedding and showing a YouTube video 
-    in a Streamlit application by encapsulating Streamlit's video function.
 
     :param youtube_url: A string containing the URL of the YouTube video to be displayed.
     :return: None. This function displays the video directly in the Streamlit app.
     """
     st.video(youtube_url)
 
-
 def app():
     """
     Main application function for 'LanguageBuddy', a Streamlit app for language learning.
-
-    This function sets up the UI, handles user authentication, processes YouTube URLs 
-    for educational content, and manages the interaction for importing lessons and 
-    displaying video transcripts with translation tooltips.
-
-    - Checks if the user is logged in.
-    - Provides an interface for entering a YouTube URL.
-    - Manages the process of importing and displaying a lesson from a video by:
-      - Validating the URL.
-      - Playing the video.
-      - Fetching and processing the transcript.
-      - Displaying the transcript with translation tooltips.
 
     :return: None. This function controls the flow and display of the Streamlit app.
     """
@@ -252,9 +221,8 @@ def app():
     .tooltip {
       position: relative;
       display: inline-block;
-      border-bottom: 1px dotted black; /* Optional: Indicates it's hoverable */
+      border-bottom: 1px dotted black;
     }
-
     .tooltip .tooltiptext {
       visibility: hidden;
       width: 120px;
@@ -265,21 +233,19 @@ def app():
       padding: 5px 0;
       position: absolute;
       z-index: 1;
-      bottom: 125%; /* Tooltip above the word */
+      bottom: 125%; 
       left: 50%; 
-      margin-left: -60px; /* Half of width to center the tooltip */
+      margin-left: -60px;
       opacity: 0;
       transition: opacity 0.3s;
     }
-
     .tooltip:hover .tooltiptext {
       visibility: visible;
       opacity: 1;
     }
-    /* New styles for larger text and increased line spacing */
     .transcript {
-      font-size: 24px; /* Double the typical font size */
-      line-height: 2; /* Double line height for better readability */
+      font-size: 24px;
+      line-height: 2;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -287,8 +253,8 @@ def app():
     if 'db' not in st.session_state:
         st.session_state.db = ''
 
-    db=firestore.client()
-    st.session_state.db=db
+    db = firestore.client()
+    st.session_state.db = db
 
     if st.session_state.username == '':
         st.error("Please log in with a valid username.")
@@ -297,25 +263,19 @@ def app():
         with st.expander(':orange[Expand for Instructions]'):
             st.markdown("""
             In a separate tab of your web browser, open [YouTube](https://www.youtube.com) and find a video to watch. 
-            You can use [Google Translate](https://translate.google.com/) to get the search terms that interest you 
-            in your target language from your native language. The video should be less than 5 minutes long and have 
-            captions in your target language. Use Youtube's Filters -> Duration -> Under 4 minutes.
             Copy the URL for the YouTube video and paste it in the box below, then click the **Import Lesson** button. 
-            Videos longer than 5 minutes risk not properly loading the transcript and other LanguageBuddy features.
-            The shorter a video is, the easier it will be to complete the steps below.
             """)
             st.subheader(":orange[For the best results]")
             
             st.markdown("""
             <ol>
-                <li>Pick a video less than 5 minutes long. (Novice learners should aim for 1 to 2 minutes)</li>
-                <li>Watch the entire video without subtitles (or just listen to the audio)</li>
-                <li>Read the transcription and use the mouse to hover over unknown words, their translation will appear in a tooltip</li>
-                <li>Rewatch the video with subtitles, or listen to the audio while you read the transcription</li>
-                <li>Repeat steps 2, 3, and 4 until you understand most of the content (roughly 50 to 80 %)</li>
+                <li>Pick a video less than 5 minutes long.</li>
+                <li>Watch the entire video without subtitles</li>
+                <li>Read the transcription and use the mouse to hover over unknown words</li>
+                <li>Rewatch the video with subtitles</li>
+                <li>Repeat steps 2, 3, and 4 until you understand most of the content</li>
                 <li>Commit to doing this exercise at least once a day on LanguageBuddy!</li>
             </ol>
-            </div>
             """, unsafe_allow_html=True)
 
         youtube_url = st.text_area(
@@ -335,7 +295,6 @@ def app():
                         try:
                             formatted_transcript = process_transcript(transcript, db)
                             if formatted_transcript:
-                                # Add a class for styling to the transcript output
                                 st.markdown(f"""
                                 <div class="transcript">
                                 {formatted_transcript}
@@ -347,15 +306,15 @@ def app():
                                     text = line["text"]
                                     if text != '[Music]':
                                         script.append(text)
-                                st.text('\n\n'.join(script))  # Double newline for extra space between lines
+                                st.text('\n\n'.join(script))  
                         except Exception as e:
-                                st.error(f'Error processing script, in app(): {str(e)}')
-                                script = []
-                                for line in transcript:
-                                    text = line["text"]
-                                    if text != '[Music]':
-                                        script.append(text)
-                                st.text('\n\n'.join(script))  # Double newline for extra space between lines
+                            st.error(f'Error processing script, in app(): {str(e)}')
+                            script = []
+                            for line in transcript:
+                                text = line["text"]
+                                if text != '[Music]':
+                                    script.append(text)
+                            st.text('\n\n'.join(script))  
                     except Exception as e:
                         st.error(f'Error processing video: {str(e)}')
                 else:
