@@ -207,7 +207,11 @@ def process_transcript(transcript, db):
                         # Use the cleaned word for translation lookup but display the original word
                         translation = translations.get(cleaned_word, [])[:3]
                         words_with_tooltips.append(f'<div class="tooltip">{word}<span class="tooltiptext">{", ".join(translation)}</span></div>')
-                html_output.append(' '.join(words_with_tooltips))
+                
+                # Join words to form the line and wrap with a line tooltip
+                line_translation = ", ".join(set([translation[0] if translation else "" for translation in [translations.get(remove_punctuation(word), []) for word in line["text"].split()]]))
+                line_with_tooltip = f'<div class="tooltip">{line["text"]}<span class="tooltiptext">{line_translation}</span></div>'
+                html_output.append(line_with_tooltip.replace(' '.join(words_with_tooltips), ' '.join(words_with_tooltips)))
 
         return '\n'.join(html_output)
 
