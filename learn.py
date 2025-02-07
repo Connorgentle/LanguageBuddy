@@ -299,20 +299,20 @@ def app():
             In a separate tab of your web browser, open [YouTube](https://www.youtube.com) and find a video to watch. 
             You can use [Google Translate](https://translate.google.com/) to get the search terms that interest you 
             in your target language from your native language. The video should be less than 5 minutes long and have 
-            captions in your target language. Copy the URL for the YouTube video and paste it in the box below, then 
-            click the **Import Lesson** button. Videos longer than 5 minutes risk longer load times for the 
-            transcript, may not have tooltip translations, and the transcript may not be added to your personal 
-            vocabulary. The shorter a video is, the easier it will be to complete the steps below.
+            captions in your target language. User Youtube's Filters -> Duration -> Under 4 minutes.
+            Copy the URL for the YouTube video and paste it in the box below, then click the **Import Lesson** button. 
+            Videos longer than 5 minutes risk not properly loading the transcript and other LanguageBuddy features.
+            The shorter a video is, the easier it will be to complete the steps below.
             """)
             st.subheader(":orange[For the best results]")
             
             st.markdown("""
             <ol>
-                <li>Pick a video that is 2 to 5 minutes long</li>
+                <li>Pick a video less than 5 minutes long. (Novice learners should aim for 1 to 2 minutes)</li>
                 <li>Watch the entire video without subtitles (or just listen to the audio)</li>
                 <li>Read the transcription and use the mouse to hover over unknown words, their translation will appear in a tooltip</li>
                 <li>Rewatch the video with subtitles, or listen to the audio while you read the transcription</li>
-                <li>Repeat steps 2, 3, and 4 until you understand most of the content (roughly 80%)</li>
+                <li>Repeat steps 2, 3, and 4 until you understand most of the content (roughly 50 to 80 %)</li>
                 <li>Commit to doing this exercise at least once a day on LanguageBuddy!</li>
             </ol>
             </div>
