@@ -15,14 +15,16 @@ from collections import namedtuple
 # Functions                 #
 ###################################
 
-
 def get_transcription(youtube_url: str):
     """
     Extracts the transcription of a YouTube video using direct HTTP requests.
 
+    This function retrieves the video ID from the URL, fetches the transcript 
+    directly from YouTube's timedtext endpoint, and converts it to a list of dictionaries.
+
     :param youtube_url: A string representing the URL of the YouTube video.
     :return: A list of dictionaries containing 'text', 'start', and 'duration' keys for the video's transcript.
-    :raises Exception: If the transcript for the specified language is not available or if XML parsing fails.
+    :raises Exception: If the transcript for the specified language is not available.
     """
     target_language = st.session_state.get("target_language")
     if not target_language:
@@ -33,27 +35,22 @@ def get_transcription(youtube_url: str):
     
     response = requests.get(url)
     if response.status_code == 200:
-        # Print or log the response content for debugging
-        print(f"Response content: {response.text[:1000]}...")  # Print first 1000 chars
-        
-        try:
-            root = ET.fromstring(response.text)
-            transcript = []
-            for child in root:
-                if child.tag == 'text':
-                    start = float(child.attrib.get('start', '0'))
-                    duration = float(child.attrib.get('dur', '0'))
-                    text = child.text or ""
-                    text = re.sub(r'\s+', ' ', text).strip()
-                    
-                    transcript.append({
-                        'text': text,
-                        'start': start,
-                        'duration': duration
-                    })
-            return transcript
-        except ET.ParseError as e:
-            raise Exception(f"XML Parsing Error: {str(e)}")
+        root = ET.fromstring(response.text)
+        transcript = []
+        for child in root:
+            if child.tag == 'text':
+                start = float(child.attrib.get('start', '0'))
+                duration = float(child.attrib.get('dur', '0'))
+                text = child.text or ""
+                # Clean up the text (remove extra spaces, newlines)
+                text = re.sub(r'\s+', ' ', text).strip()
+                
+                transcript.append({
+                    'text': text,
+                    'start': start,
+                    'duration': duration
+                })
+        return transcript
     else:
         raise Exception(f"Could not retrieve a transcript for the video in {target_language}: Status code {response.status_code}")
 
