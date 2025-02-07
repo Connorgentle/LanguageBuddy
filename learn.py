@@ -294,7 +294,29 @@ def app():
         st.error("Please log in with a valid username.")
         return  
     else:
-        # ... (expander and instructions code remains unchanged)
+        with st.expander(':orange[Expand for Instructions]'):
+            st.markdown("""
+            In a separate tab of your web browser, open [YouTube](https://www.youtube.com) and find a video to watch. 
+            You can use [Google Translate](https://translate.google.com/) to get the search terms that interest you 
+            in your target language from your native language. The video should be less than 5 minutes long and have 
+            captions in your target language. Copy the URL for the YouTube video and paste it in the box below, then 
+            click the **Import Lesson** button. Videos longer than 5 minutes risk longer load times for the 
+            transcript, may not have tooltip translations, and the transcript may not be added to your personal 
+            vocabulary. The shorter a video is, the easier it will be to complete the steps below.
+            """)
+            st.subheader(":orange[For the best results]")
+            
+            st.markdown("""
+            <ol>
+                <li>Pick a video that is 2 to 5 minutes long</li>
+                <li>Watch the entire video without subtitles (or just listen to the audio)</li>
+                <li>Read the transcription and use the mouse to hover over unknown words, their translation will appear in a tooltip</li>
+                <li>Rewatch the video with subtitles, or listen to the audio while you read the transcription</li>
+                <li>Repeat steps 2, 3, and 4 until you understand most of the content (roughly 80%)</li>
+                <li>Commit to doing this exercise at least once a day on LanguageBuddy!</li>
+            </ol>
+            </div>
+            """, unsafe_allow_html=True)
 
         youtube_url = st.text_area(
             label=' :orange[Enter the YouTube URL below and click Import Lesson - (video should be less than 5 minutes)]',
