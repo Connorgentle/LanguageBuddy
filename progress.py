@@ -6,10 +6,10 @@ from firebase_admin import firestore
 
 def fetch_vocabulary_stats(user_id, lang_pair, db):
     words_collection = db.collection('users').document(user_id).collection('vocabulary').document(lang_pair).collection('words')
-    vocab = [{'Word': doc.id, 'Fluency': doc.to_dict().get('fluency', 'new')} for doc in words_collection.stream()]
+    vocab = [{'Word': doc.id, 'Fluency': doc.to_dict().get('fluency', '1-new')} for doc in words_collection.stream()]
     df = pd.DataFrame(vocab)
     
-    stats = df['Fluency'].value_counts().reindex(['new', 'unfamiliar', 'familiar', 'learned', 'known']).dropna()
+    stats = df['Fluency'].value_counts().reindex(['1-new', '2-recognized', '3-familiar', '4-learned', '5-known']).dropna()
     stats = stats[stats > 0].reset_index()
     stats.columns = ['Fluency', 'Count']
     return stats
