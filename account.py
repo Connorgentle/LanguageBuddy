@@ -135,11 +135,16 @@ def app():
         st.session_state['signout'] = False    
 
     if not st.session_state["signedout"]: # only show if the state is False, hence the button has never been clicked
-        choice = st.selectbox('Login/Signup',['Login','Sign up'])
+        # Use session state to control which option is selected
+        choice = st.selectbox('Login/Signup', ['Login','Sign up'], key='choice_selector', index=['Login', 'Sign up'].index(st.session_state.get('choice', 'Login')))
         email = st.text_input('Email Address')
         password = st.text_input('Password',type='password')
         st.session_state.email_input = email
         st.session_state.password_input = password
+
+        # Trigger a rerender if 'rerender' flag is changed
+        if 'rerender' in st.session_state:
+            st.write("")  # This forces a rerender by adding a new element
 
         if choice == 'Login':
             # Show language selection for login only
@@ -169,11 +174,13 @@ def app():
                     st.success('Account created successfully!')
                     st.markdown('Please Login using your email and password')
                     st.balloons()
-                    # Clear session state to ensure login page reloads correctly
+                    # Automatically switch to login mode
                     st.session_state['signedout'] = False  
                     st.session_state['signout'] = False  
-                    # Use st.rerun() instead of st.experimental_rerun()
-                    st.rerun()  
+                    # Change choice to 'Login'
+                    st.session_state['choice'] = 'Login'  
+                    # Re-render UI by setting a flag
+                    st.session_state['rerender'] = not st.session_state.get('rerender', False)
                 else:
                     st.error(f'Account creation failed: {message}')
         
@@ -184,5 +191,3 @@ def app():
         st.text('Native Language: '+st.session_state.get('native_language'))
         st.text('Target Language: '+st.session_state.get('target_language'))
         st.button('Sign out', on_click=t) 
-                
-
