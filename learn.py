@@ -96,31 +96,30 @@ def try_site(url):
 
 def send_unique_words_to_firestore(unique_words, user_id, db, lang_pair):
     """
-    Send unique words to Firestore, creating or updating them in a subcollection based on language pair.
+    Send unique words to Firestore, adding new words with a fluency of '1-new' 
+    but leaving existing words' fluency unchanged.
 
-    This function ensures each word is stored under a specific language pair document, 
-    allowing for organized storage by language context.
-
-    :param unique_words: An iterable of unique words to add or update in Firestore.
+    :param unique_words: An iterable of unique words to add to Firestore.
     :param user_id: The ID of the user whose vocabulary is being updated.
     :param db: A Firestore client instance.
     :param lang_pair: String representing the language pair, e.g., "en-fr".
     :return: None. Updates Firestore in-place.
     """
-    # We go directly to the 'words' subcollection under 'vocabulary' for the specific language pair
     words_collection = db.collection('users').document(user_id).collection('vocabulary').document(lang_pair).collection('words')
-    
     batch = db.batch()
     
     try:
         for word in unique_words:
             if isinstance(word, str) and word.strip():
                 doc_ref = words_collection.document(word)
-                batch.set(doc_ref, {"fluency": "1-new"}, merge=True)
-        
+                existing_doc = doc_ref.get()
+                if not existing_doc.exists:  # Check if the word does not exist
+                    # Add new word with fluency set to '1-new'
+                    batch.set(doc_ref, {"fluency": "1-new"})
+                # If the document exists, we do nothing, preserving its current fluency.
+
         batch.commit()
     except Exception as e:
-        # Log or handle the error appropriately
         st.text(f"An error occurred while updating Firestore: {str(e)}")
 
 
