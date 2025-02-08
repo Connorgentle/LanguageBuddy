@@ -178,6 +178,11 @@ def remove_punctuation(input_string):
 def process_transcript(transcript, db):
     try:
         unique_words = set()
+        html_output = []
+        
+        native_language = st.session_state.get("native_language")
+        target_language = st.session_state.get("target_language")
+
         for line in transcript:
             if line["text"] != '[Music]':
                 # Keep words with apostrophes intact
@@ -185,28 +190,31 @@ def process_transcript(transcript, db):
                                  if isinstance(word, str) and word.strip() != '']
                 unique_words.update(cleaned_words)
         
-        native_language = st.session_state.get("native_language")
-        target_language = st.session_state.get("target_language")
-        
         if st.session_state.get('username'):
             lang_pair = f"{native_language}-{target_language}"
             send_unique_words_to_firestore(unique_words, st.session_state.username, db, lang_pair)
         
+        # Get translations for all unique words
         translations = batch_get_translations([word for word in unique_words if isinstance(word, str) and word], 
                                               native_language, target_language)
         
-        html_output = []
         for line in transcript:
             if line["text"] != '[Music]':
+                # Translate the entire line
+                line_translation = get_translation(line["text"], native_language, target_language)
+                
                 words_with_tooltips = []
                 for word in line["text"].split():
-                    # Clean the word for translation but keep the original for display
                     cleaned_word = remove_punctuation(word)
                     if cleaned_word and isinstance(cleaned_word, str):
                         # Use the cleaned word for translation lookup but display the original word
-                        translation = translations.get(cleaned_word, [])[:3]
-                        words_with_tooltips.append(f'<div class="tooltip">{word}<span class="tooltiptext">{", ".join(translation)}</span></div>')
-                html_output.append(' '.join(words_with_tooltips))
+                        translation = translations.get(cleaned_word, [])[:3] if cleaned_word in translations else []
+                        words_with_tooltips.append(f'<div class="word-tooltip">{word}<span class="word-tooltiptext">{", ".join(translation)}</span></div>')
+
+                # Create HTML for the line with both line and word tooltips
+                line_with_both_tooltips = f'<div class="sentence-tooltip">{line["text"]} (*)<span class="sentence-tooltiptext">{", ".join(line_translation)}</span></div>'
+                line_with_both_tooltips = line_with_both_tooltips.replace(' '.join(words_with_tooltips), ' '.join(words_with_tooltips))
+                html_output.append(line_with_both_tooltips)
 
         return '\n'.join(html_output)
 
@@ -248,37 +256,65 @@ def app():
     """
     st.markdown("""
     <style>
-    .tooltip {
-      position: relative;
-      display: inline-block;
-      border-bottom: 1px dotted black; /* Optional: Indicates it's hoverable */
+    .sentence-tooltip {
+        position: relative;
+        display: inline-block;
     }
 
-    .tooltip .tooltiptext {
-      visibility: hidden;
-      width: 120px;
-      background-color: black;
-      color: #fff;
-      text-align: center;
-      border-radius: 6px;
-      padding: 5px 0;
-      position: absolute;
-      z-index: 1;
-      bottom: 125%; /* Tooltip above the word */
-      left: 50%; 
-      margin-left: -60px; /* Half of width to center the tooltip */
-      opacity: 0;
-      transition: opacity 0.3s;
+    .sentence-tooltip .sentence-tooltiptext {
+        visibility: hidden;
+        width: 200px; /* Adjust as needed */
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 0;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%; /* Position above the sentence */
+        left: 50%;
+        margin-left: -100px; /* Half of width to center */
+        opacity: 0;
+        transition: opacity 0.3s;
     }
 
-    .tooltip:hover .tooltiptext {
-      visibility: visible;
-      opacity: 1;
+    .sentence-tooltip:hover .sentence-tooltiptext {
+        visibility: visible;
+        opacity: 1;
     }
+
+    .word-tooltip {
+        position: relative;
+        display: inline-block;
+        border-bottom: 1px dotted black; /* Optional: Indicates it's hoverable */
+    }
+
+    .word-tooltip .word-tooltiptext {
+        visibility: hidden;
+        width: 120px;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 0;
+        position: absolute;
+        z-index: 2; /* Higher to ensure it's above sentence tooltip */
+        bottom: 125%; /* Tooltip above the word */
+        left: 50%; 
+        margin-left: -60px; /* Half of width to center the tooltip */
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .word-tooltip:hover .word-tooltiptext {
+        visibility: visible;
+        opacity: 1;
+    }
+    
     /* New styles for larger text and increased line spacing */
     .transcript {
-      font-size: 24px; /* Double the typical font size */
-      line-height: 2; /* Double line height for better readability */
+        font-size: 24px; /* Double the typical font size */
+        line-height: 2; /* Double line height for better readability */
     }
     </style>
     """, unsafe_allow_html=True)
