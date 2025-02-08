@@ -175,13 +175,11 @@ def remove_punctuation(input_string):
     :return: A string with most punctuation removed but apostrophes kept, converted to lowercase.
     """
     return re.sub(r'[^\w\s\']+', '', input_string).lower()
-
 def process_transcript(transcript, db):
     try:
         unique_words = set()
         for line in transcript:
             if line["text"] != '[Music]':
-                # Keep words with apostrophes intact
                 cleaned_words = [remove_punctuation(word).lower() for word in line["text"].split() 
                                  if isinstance(word, str) and word.strip() != '']
                 unique_words.update(cleaned_words)
@@ -201,13 +199,16 @@ def process_transcript(transcript, db):
             if line["text"] != '[Music]':
                 words_with_tooltips = []
                 for word in line["text"].split():
-                    # Clean the word for translation but keep the original for display
                     cleaned_word = remove_punctuation(word)
                     if cleaned_word and isinstance(cleaned_word, str):
-                        # Use the cleaned word for translation lookup but display the original word
                         translation = translations.get(cleaned_word, [])[:3]
-                        words_with_tooltips.append(f'<div class="tooltip">{word}<span class="tooltiptext">{", ".join(translation)}</span></div>')
-                html_output.append(' '.join(words_with_tooltips))
+                        words_with_tooltips.append(f'<div class="word-tooltip">{word}<span class="word-tooltiptext">{", ".join(translation)}</span></div>')
+                
+                # Sentence tooltip
+                line_translation = ", ".join(set([translation[0] if translation else "" for translation in [translations.get(remove_punctuation(word), []) for word in line["text"].split()]]))
+                line_with_tooltips = ' '.join(words_with_tooltips)
+                line_with_both_tooltips = f'<div class="sentence-tooltip">{line_with_tooltips}<span class="sentence-tooltiptext">{line_translation}</span></div>'
+                html_output.append(line_with_both_tooltips)
 
         return '\n'.join(html_output)
 
@@ -248,40 +249,68 @@ def app():
     :return: None. This function controls the flow and display of the Streamlit app.
     """
     st.markdown("""
-    <style>
-    .tooltip {
-      position: relative;
-      display: inline-block;
-      border-bottom: 1px dotted black; /* Optional: Indicates it's hoverable */
+ <style>
+    .sentence-tooltip {
+        position: relative;
+        display: inline-block;
     }
 
-    .tooltip .tooltiptext {
-      visibility: hidden;
-      width: 120px;
-      background-color: black;
-      color: #fff;
-      text-align: center;
-      border-radius: 6px;
-      padding: 5px 0;
-      position: absolute;
-      z-index: 1;
-      bottom: 125%; /* Tooltip above the word */
-      left: 50%; 
-      margin-left: -60px; /* Half of width to center the tooltip */
-      opacity: 0;
-      transition: opacity 0.3s;
+    .sentence-tooltip .sentence-tooltiptext {
+        visibility: hidden;
+        width: 200px;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 0;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%; /* Position above the sentence */
+        left: 50%;
+        margin-left: -100px; /* Half of width to center */
+        opacity: 0;
+        transition: opacity 0.3s;
     }
 
-    .tooltip:hover .tooltiptext {
-      visibility: visible;
-      opacity: 1;
+    .sentence-tooltip:hover .sentence-tooltiptext {
+        visibility: visible;
+        opacity: 1;
     }
-    /* New styles for larger text and increased line spacing */
+
+    .word-tooltip {
+        position: relative;
+        display: inline-block;
+        border-bottom: 1px dotted black; /* Optional: Indicates it's hoverable */
+    }
+
+    .word-tooltip .word-tooltiptext {
+        visibility: hidden;
+        width: 120px;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 0;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%; /* Position above the word */
+        left: 50%; 
+        margin-left: -60px; /* Half of width to center */
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .word-tooltip:hover .word-tooltiptext {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    /* Adjust these styles for better readability if needed */
     .transcript {
-      font-size: 24px; /* Double the typical font size */
-      line-height: 2; /* Double line height for better readability */
+        font-size: 24px;
+        line-height: 2;
     }
-    </style>
+</style>
     """, unsafe_allow_html=True)
 
     if 'db' not in st.session_state:
